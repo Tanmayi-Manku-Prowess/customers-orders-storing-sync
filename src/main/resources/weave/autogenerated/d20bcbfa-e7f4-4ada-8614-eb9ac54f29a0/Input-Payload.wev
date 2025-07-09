@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_d20bcbfa_e7f4_4ada_8614_eb9ac54f29a0_Input_Payload = {|
+  customers: Array<{|    customerId: String,     name: String,     region: String,     orders: Array<{|      orderId: String,       customerId: String,       orderDate: String,       totalAmount: Number    |}>
+  |} | {|
+    customerId: String, 
+    name: String, 
+    region: String, 
+    orders: Array<Nothing>
+  |}>
+|}
+

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <apikit:config name="customers_orders_sync-config" api="resource::ac2b5c08-de6b-414b-9c18-cd474575c3f5:customers_orders_sync:1.0.0:raml:zip:customers_orders_sync.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="customers_orders_sync-main" doc:id="d20bcbfa-e7f4-4ada-8614-eb9ac54f29a0">
+        <http:listener path="/api/*" config-ref="HTTP_Listener_config">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="customers_orders_sync-config" />
+        <error-handler ref="apiKitErrorsError_Handler">
+           
+        </error-handler>
+    </flow>
+    <flow name="get:\customerOrders:customers_orders_sync-config">
+        <logger level="INFO" message="get:\customerOrders:customers_orders_sync-config" />
+    </flow>
+    <flow name="post:\customerOrders:application\json:customers_orders_sync-config">
+		<logger level="INFO" doc:name="Log Initial Input Data" doc:id="bc45a0a5-6e74-4372-9519-5c66ef0116b3" message="#[payload]"/>
+		<flow-ref doc:name="Transform Data Flow Reference" doc:id="0768a1a3-f6e2-42d0-adbb-161cdb475fa3" name="transformDataSub_Flow"/>
+		<ee:transform doc:name="Transformed Data" doc:id="8b75a7e0-80c4-47d4-b422-a1640fee1511" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Implement DB, SF, SMTP Insert Operations" doc:id="fd094858-6b75-4770-a16d-2a3fc2d49694" name="executeOperationsSub_Flow"/>
+		<ee:transform doc:name="Final Response of flow">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Customer and order data successfully inserted into Salesforce and database."
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Log Success Execution Message" doc:id="fbbab2a4-c3f2-407f-a613-97f500a1fb55" message="#[payload]"/>
+		<error-handler ref="globalErrorsError_Handler" />
+    </flow>
+</mule>

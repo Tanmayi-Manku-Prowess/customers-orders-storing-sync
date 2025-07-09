@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="executeOperationsSub_Flow" doc:id="9b6e9582-02da-4f0b-8fd7-79165ecc5ed9" >
+			<scatter-gather doc:name="Insert Customers, Orders and ProductsSummary Data to DB and SF" doc:id="47d1a120-7f92-4bea-ab1e-981634e7fd27">
+			<route>
+				<try doc:name="Try" doc:id="21a114f3-2c05-4c6d-a823-79f84f7f2188" >
+					<flow-ref doc:name="Insert data to SF Flow Reference" doc:id="e231fe7c-752a-4673-9df1-c982d31b9e60" name="insertCustomersToSFSub_Flow" />
+					<error-handler ref="globalErrorsError_Handler" />
+				</try>
+				<logger level="INFO" doc:name="Log Response after operation" doc:id="430941cb-e172-4ecb-a8cd-80ce3bf87b76" message="#[payload]" />
+			</route>
+			<route>
+				<try doc:name="Try" doc:id="2081a3b3-53a0-40e1-84c1-451bea077f5c" >
+					<flow-ref doc:name="Insert Data to Cloud DB Flow Reference" doc:id="5b62c607-eec5-498d-b48e-041ae4ccba0f" name="insertTransformedDataToDbSub_Flow" />
+					<error-handler ref="globalErrorsError_Handler" />
+				</try>
+				<logger level="INFO" doc:name="Log Response after operation" doc:id="1f23ca50-4728-4863-8438-a0a94b8c4de1" message="#[payload]" />
+			</route>
+		</scatter-gather>
+		<flow-ref doc:name="Send Email Response Flow Reference" doc:id="a69a6a3b-3d64-4af6-8878-f00765a10f94" name="sendEmailResponseSub_Flow" />
+		<logger level="INFO" doc:name="Log Response after operation" doc:id="837ad75e-cb6e-4cda-9d4d-60946850ff5a" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"responseAfterSyncActions": payload&#10;}]' />
+	</sub-flow>
+</mule>

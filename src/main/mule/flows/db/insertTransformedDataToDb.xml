@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="insertTransformedDataToDbSub_Flow" doc:id="0a7d28ed-598d-44df-bd3e-b4e14d4f98ca" >
+		<set-variable value="#[payload.productsSummary]" doc:name="productsSummary" doc:id="9f69142d-769f-4889-a022-ba47ab3a66c9" variableName="productsSummary"/>
+		<db:bulk-insert doc:name="Bulk insert to orders table" doc:id="8f36cc44-d275-4a5d-81bf-14cc57ee6777" config-ref="Database_Config">
+			<db:bulk-input-parameters ><![CDATA[#[payload.orders]]]></db:bulk-input-parameters>
+			<db:sql ><![CDATA[INSERT INTO orders (orderId, customerId, orderDate, totalAmount)
+VALUES (:orderId, :customerId, :orderDate, :totalAmount)
+]]></db:sql>
+		</db:bulk-insert>
+		<logger level="INFO" doc:name="Log orders data insert action response" doc:id="af470a55-d104-452c-b5f0-009801c6e87b" message="#[payload]"/>
+		<db:bulk-insert doc:name="Bulk insert to productsSummary" doc:id="a98432f1-e61c-4a28-87cb-4dcacdecc9e4" config-ref="Database_Config">
+			<db:bulk-input-parameters ><![CDATA[#[vars.productsSummary]]]></db:bulk-input-parameters>
+			<db:sql ><![CDATA[INSERT INTO products_summary (productId, productName, totalPrice)
+VALUES (:productId, :productName, :totalPrice)
+]]></db:sql>
+		</db:bulk-insert>
+		<logger level="INFO" doc:name="Log products data insert action response" doc:id="14f6df7c-4073-4bb9-8e5f-a3f360d93c0c" message="#[payload]"/>
+	</sub-flow>
+</mule>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="globalErrorsError_Handler" doc:id="67dae5d9-bbb6-4cbe-9748-30e6af9bf9d6">
+    <on-error-propagate type="DB:CONNECTIVITY" doc:name="Handle DB Connectivity Error" enableNotifications="true" logException="true">
+        <set-variable value="502" variableName="httpStatus" doc:name="httpStatus" />
+        
+        <ee:transform doc:name="DB Error Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Database connectivity issue. Please verify DB configuration or connectivity."
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <logger level="ERROR" doc:name="Log DB Error" message="#[payload]" />
+    </on-error-propagate>
+
+    <on-error-propagate type="EMAIL:CONNECTIVITY" doc:name="Handle Email Error">
+        <set-variable value="503" variableName="httpStatus" doc:name="httpStatus" />
+        
+        <ee:transform doc:name="Email Error Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Failed to send email. Please verify SMTP settings and network."
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <logger level="ERROR" doc:name="Log Email Error" message="#[payload]" />
+    </on-error-propagate>
+
+    <on-error-propagate type="SALESFORCE:CONNECTIVITY" doc:name="Handle Salesforce Error">
+        <set-variable value="503" variableName="httpStatus" doc:name="httpStatus" />
+        
+        <ee:transform doc:name="Salesforce Error Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Failed to send email. Please verify Salesforce connectivity."
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <logger level="ERROR" doc:name="Log Salesforce Error" message="#[payload]" />
+    </on-error-propagate>    
+
+    <on-error-propagate type="ANY" doc:name="Handle Any Other Error">
+        <set-variable value="500" variableName="httpStatus" doc:name="httpStatus" />
+        
+        <ee:transform doc:name="Generic Error Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "An unexpected error occurred. Please check system logs for more information."
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <logger level="ERROR" doc:name="Log Global Error" message="#[payload]" />
+    </on-error-propagate>
+	</error-handler>
+</mule>

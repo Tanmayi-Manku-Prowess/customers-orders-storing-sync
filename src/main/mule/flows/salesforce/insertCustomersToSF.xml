@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="insertCustomersToSFSub_Flow" doc:id="71e34c22-080a-425f-840b-1a9b45aa905e" >
+		<logger level="INFO" doc:name="Log Payload Insertes to Salesforce" doc:id="3bde1158-e9eb-4ba5-bfec-9c9ac70a5cf1" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"payloadToUseForUpsert": payload&#10;}]'/>
+		<salesforce:create type="Customerdata__c" doc:name="Insert customers data to Customerdata object" doc:id="c5ee86e9-c00f-42ce-9c17-ffd52c4b12c0" config-ref="Salesforce_Config">
+			<salesforce:records ><![CDATA[#[payload.customers map (c) -> {
+            customerId__c: c.customerId,
+            name: c.name,
+            region__c: c.region,
+            numberOfOrders__c: sizeOf(c.orders),
+            ordersTotalAmount__c: sum(c.orders map (o) -> o.totalAmount)
+        }]]]></salesforce:records>
+		</salesforce:create>
+		<logger level="INFO" doc:name="Log upsert action response" doc:id="bf1f25da-6378-445b-8a02-5e3469a5a3e4" message="#[payload]"/>
+	</sub-flow>
+</mule>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="apiKitErrorsError_Handler" doc:id="81e6c01f-c03b-4799-95dd-30516be43f94">
+	 <on-error-propagate type="APIKIT:BAD_REQUEST" doc:name="Handle Bad Request Error - 400">
+                <logger level="ERROR" doc:name="Log Bad Request Error " doc:id="296c544b-40a1-4feb-9f12-7985d141fc79" message='#["Bad Request Error - due to failed Validation"]'/>
+			<set-variable value="#[400]" doc:name="httpStatus" doc:id="ed7ec10d-8a09-4011-bdc5-82f34a029d70" variableName="httpStatus"/>
+			<flow-ref doc:name="Send Email Flow Reference" doc:id="1106df97-61eb-49dc-8cfb-bd3985353ecc" name="sendEmailResponseSub_Flow"/>
+			<ee:transform doc:name="Set Bad REquest Error Response">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "status": "FAILED",
+  "statusCode": vars.httpStatus,
+  "errorType": error.errorType.identifier,
+  "exceptionReason": error.description,
+  "message": "Input data failed validation. Please check required fields and format."
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+			<logger level="ERROR" doc:name="Log Bad Request Error Response" doc:id="6cc42618-dafb-4358-ab1f-e7fb1600a24c" message="#[payload]"/>
+            
+</on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+            <set-variable value="404" variableName="httpStatus" doc:name="httpStatus"/>
+    <ee:transform doc:name="Not Found Response">
+      <ee:message>
+        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Requested resource was not found."
+}]]></ee:set-payload>
+      </ee:message>
+    </ee:transform>
+			<logger level="ERROR" doc:name="Log Error Response" doc:id="8eab4712-78c7-40d6-8ef2-0adbdffa4851" message="#[payload]"/>
+            
+</on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                 <set-variable value="405" variableName="httpStatus" doc:name="httpStatus"/>
+  <ee:transform doc:name="Method Not Allowed Response">
+    <ee:message>
+      <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "The HTTP method used is not allowed for this endpoint."
+}]]></ee:set-payload>
+    </ee:message>
+  </ee:transform>
+  <logger level="ERROR" doc:name="Log Error Response" doc:id="2b7821a7-cd76-48dd-9ddc-a57d137f4a61" message="#[payload]"/>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <set-variable value="415" variableName="httpStatus" doc:name="httpStatus"/>
+  <ee:transform doc:name="Unsupported Media Type Response">
+    <ee:message>
+      <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Unsupported media type in the request. Please use a supported format like application/json."
+}]]></ee:set-payload>
+    </ee:message>
+  </ee:transform>
+  <logger level="ERROR" doc:name="Log Error Response" doc:id="5ac907a2-ebcb-4326-b936-9d95b876ac2a" message="#[payload]"/>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <set-variable value="501" variableName="httpStatus" doc:name="httpStatus"/>
+  <ee:transform doc:name="Not Implemented Response">
+    <ee:message>
+      <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "This API operation is not yet implemented. Please contact support or try a different endpoint."
+}]]></ee:set-payload>
+    </ee:message>
+  </ee:transform>
+  <logger level="ERROR" doc:name="Log Error Response" doc:id="1d4a11b9-ba3c-4044-a9a1-908be56e85cd" message="#[payload]"/>
+            </on-error-propagate>
+	</error-handler>
+</mule>

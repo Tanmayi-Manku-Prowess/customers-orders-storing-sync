@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd">
+
+  <munit:config name="customers_orders_sync-test-suite.xml"/>
+
+  <munit:test name="InvalidInput_ShouldTriggerBadRequestHandler" description="Simulate BAD_REQUEST from apikit router">
+    
+    <munit:behavior>
+      <munit-tools:mock-when processor="apikit:router">
+        <munit-tools:with-attributes>
+          <munit-tools:with-attribute attributeName="config-ref" whereValue="customers_orders_sync-config"/>
+        </munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;              status: 'FAILED',&#10;              statusCode: 400,&#10;              message: 'Input data failed validation. Please check required fields and format.'&#10;            }]" mediaType="application/json" />
+				</munit-tools:then-return>
+      
+</munit-tools:mock-when>
+    </munit:behavior>
+
+    <munit:execution>
+      <munit:set-event>
+        <munit:payload value="#[
+          {
+            customers: [
+              {
+                customerId: 'CUST001',
+                name: 'Alice'
+              }
+            ]
+          }
+        ]" mediaType="application/json"/>
+				<munit:attributes value="#[{method: 'POST'}]" mediaType="application/json"/>
+      
+</munit:set-event>
+      <flow-ref name="customers_orders_sync-main"/>
+    </munit:execution>
+
+    <munit:validation>
+      <munit-tools:assert-that doc:name="Status" doc:id="02377229-208d-4979-b51d-3436b16faa84" is="#[MunitTools::equalTo('FAILED')]" expression="#[payload.status]"/>
+			<munit-tools:assert-that expression="#[payload.statusCode]" is="#[MunitTools::equalTo(400)]" doc:name="Status Code"/>
+			<munit-tools:assert-that doc:name="Status Message" doc:id="8c5d0f38-52e2-4b09-9095-c4c4593f8b6f" expression="#[payload.message]" is="#[MunitTools::equalTo('Input data failed validation. Please check required fields and format.')]" />
+    
+</munit:validation>
+
+  </munit:test>
+
+</mule>

@@ -1,0 +1,25 @@
+http:
+    host: "0.0.0.0"
+    port: "8081"
+    basePath: "/home"
+
+db:
+    host: "sql.freedb.tech"
+    port: "3306"
+    user: "freedb_mule_user"
+    password: "${db.password}"
+    database: "freedb_muleproject"
+    
+salesforce:
+    username: "tanmayi.manku345@agentforce.com"
+    password: "${salesforce.password}"
+    securityToken: "${salesforce.securityToken}"
+    
+smtp:
+    host: "smtp.gmail.com"
+    port: "587"
+    username: "mule.email.testing@gmail.com"
+    password: "${smtp.password}"
+    
+api:
+    id: "20428956"

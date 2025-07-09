@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+          http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+  <sub-flow name="transformDataSub_Flow">
+
+		<ee:transform doc:name="filterOrders with totalAmount &gt; 5000, append name with region" doc:id="d87ffe06-910f-42fe-bd47-a0a1a69104c7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+// filter customers data basing on totalAmount being only above 5000.
+{
+  "customers": payload.customers map (c) -> {
+	  "customerId": c.customerId,
+	  "name": c.name ++ "_" ++ c.region,
+	  "region": c.region,
+	  "orders": c.orders filter (o) -> o.totalAmount > 5000
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="group data by products, sum up total prices" doc:id="b8f4ba83-6ced-4a27-be4f-d405fd5618e7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var customers = payload.customers default []
+
+// filter and update the orders object
+var orders = flatten(
+  customers map (customer) -> 
+    (customer.orders default []) map (order) -> {
+      orderId: order.orderId,
+      customerId: customer.customerId,
+      orderDate: order.orderDate,
+      totalAmount: order.totalAmount
+    }
+)
+
+// transform products data basing on id, name and total prices of products
+var productsSummary = ((flatten(customers map ((item) -> flatten(item.orders.products)))) map ((item, index) -> {
+      productId: item.productId,
+      productName: item.name,
+      price: item.price
+  })) groupBy ((item, index) -> item.productId) pluck ((value) -> {
+      productId: value.productId[0],
+      productName: value.productName[0],
+      totalPrice: sum(value.price)
+  })
+
+---
+{
+  "customers": customers,
+  "orders": orders,
+  "productsSummary": productsSummary
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+
+</sub-flow>
+
+</mule>

@@ -1,0 +1,23 @@
+{
+  "customers": [
+    {
+      "customerId": "C1",
+      "name": "Ram",
+      "region": "South",
+      "orders": [
+        {
+          "orderId": "O1",
+          "orderDate": "2025-07-12",
+          "totalAmount": 7000,
+          "products": [
+            {
+              "productId": "P1",
+              "name": "Phone",
+              "price": 5000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

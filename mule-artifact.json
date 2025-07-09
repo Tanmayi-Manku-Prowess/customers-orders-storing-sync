@@ -1,0 +1,8 @@
+{
+  "minMuleVersion": "4.9.0",
+  "secureProperties": ["db.password", "smtp.password", "salesforce.password", "salesforce.securityToken"],
+  "securePropertiesKey": "encryptPass",
+  "javaSpecificationVersions": [
+    "17"
+  ]
+}
