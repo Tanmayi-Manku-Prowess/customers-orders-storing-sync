@@ -85,23 +85,5 @@ output application/json
   </ee:transform>
   <logger level="ERROR" doc:name="Log Error Response" doc:id="5ac907a2-ebcb-4326-b936-9d95b876ac2a" message="#[payload]"/>
             </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
-                <set-variable value="501" variableName="httpStatus" doc:name="httpStatus"/>
-  <ee:transform doc:name="Not Implemented Response">
-    <ee:message>
-      <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  status: "FAILED",
-  statusCode: vars.httpStatus,
-  errorType: error.errorType.identifier,
-  exceptionReason: error.description,
-  message: "This API operation is not yet implemented. Please contact support or try a different endpoint."
-}]]></ee:set-payload>
-    </ee:message>
-  </ee:transform>
-  <logger level="ERROR" doc:name="Log Error Response" doc:id="1d4a11b9-ba3c-4044-a9a1-908be56e85cd" message="#[payload]"/>
-            </on-error-propagate>
 	</error-handler>
 </mule>

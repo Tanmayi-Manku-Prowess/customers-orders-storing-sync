@@ -54,5 +54,45 @@
 </munit:validation>
 
   </munit:test>
+	<munit:test name="customers_orders_sync-test-suite-post:\customerOrders:application\json:customers_orders_sync-configTest" doc:id="23b3582d-a8ff-454b-b5b6-dc34d4b204e6" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="f6c623ec-9904-4c03-8e8f-7aea3da5ede2" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="customers_orders_sync-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "message": "Customer and order data successfully inserted into Salesforce and database."&#10;}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="3f42067a-bd0d-4165-aa1c-38abf21dbb0a" processor="db:bulk-insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Bulk insert to orders table" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="8f36cc44-d275-4a5d-81bf-14cc57ee6777" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="93b36a8d-597a-423c-aeff-161a33205e70" processor="db:bulk-insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Bulk insert to productsSummary" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="a98432f1-e61c-4a28-87cb-4dcacdecc9e4" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1eabda56-f667-4de4-b08e-4cf8f485cabc" processor="salesforce:create">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Insert customers data to Customerdata object" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="c5ee86e9-c00f-42ce-9c17-ffd52c4b12c0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="dfc0e014-e46a-4dae-ad7f-65226f99d67e" >
+				<munit:payload value='#[(MunitTools::getResourceAsString("sampleInputCustomers.json"))]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\customerOrders:application\json:customers_orders_sync-config" doc:id="bb978b6b-23df-4893-add1-1c0c851d1f3c" name="post:\customerOrders:application\json:customers_orders_sync-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="d2b5ceeb-ce5a-4d6b-9858-071d450e2b34" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
 
 </mule>
